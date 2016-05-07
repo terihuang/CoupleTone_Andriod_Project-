@@ -1,5 +1,6 @@
 package com.example.khor_000.testapp;
 
+import com.example.khor_000.testapp.ListOfFavLocations;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -36,16 +37,16 @@ import com.google.android.gms.maps.model.PolylineOptions;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
     private GoogleMap mMap;
-    private ArrayList<String> arrayList;
-    private EditText favName;
-    private ArrayAdapter<String>arrayAdapter;
+    private View setLocat;
     private Button showList;
-    private LinearLayout setLocation;
-    private LinearLayout locationList;
+    private  String locationName;
+    private  ListOfFavLocations list;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -54,16 +55,16 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
-        setLocation = (LinearLayout) getLayoutInflater().inflate(R.layout.set_location,null);
-        locationList = (LinearLayout) getLayoutInflater().inflate(R.layout.location_list,null);
-        ListView listView = (ListView) locationList.findViewById(R.id.list_view);
+        //locationList = getLayoutInflater().inflate(R.layout.location_list, null);
+        //listView = (ListView) locationList.findViewById(R.id.list_view);
         showList = (Button) findViewById(R.id.listButton);
-        String [] items = {"Aasfsdffgggrttrhyt","Bsfdrtgrtfsdg4yj65545","C123244rrefdsvbtyj5yhtrjuun6ryrth"};
-        arrayList = new ArrayList<String>(Arrays.asList(items));
-        arrayAdapter = new ArrayAdapter<String>(listView.getContext(), R.layout.each_location, arrayList);
-        arrayAdapter.notifyDataSetChanged();
-        listView.setAdapter(arrayAdapter);
-   //     listView.setTextFilterEnabled(true);
+    //        list = new ListOfFavLocations();
+        //String [] items = {"Aasfsdffgggrttrhyt","Bsfdrtgrtfsdg4yj65545","C123244rrefdsvbtyj5yhtrjuun6ryrth"};
+        //arrayList = new ArrayList<String>(Arrays.asList(items));
+        //arrayAdapter = new ArrayAdapter<String>(MapsActivity.this, R.layout.each_location, arrayList);
+        //ListOfFavLocations.class.add
+       // listView.setAdapter(arrayAdapter);
+        //arrayAdapter.notifyDataSetChanged();
     }
     /**
      * Manipulates the map once available.
@@ -79,40 +80,50 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mMap = googleMap;
 
         // Add a marker in Sydney and move the camera
-        LatLng sydney = new LatLng(-34, 151);
+        LatLng sydney = new LatLng( -34, 151);
         final Marker addFavor = mMap.addMarker(new MarkerOptions().position(sydney).title("where am I  "));
         mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
         mMap.getUiSettings().setMyLocationButtonEnabled(true);
         mMap.getUiSettings().setZoomControlsEnabled(true);
+
+       // ListOfFavLocations.addItem("AAAAA");
+        //ListOfFavLocations.addItem("bbbbbbb");
+        //ListOfFavLocations.addItem("cccccccc");
+
 
         showList.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 // show the list ( change page)
                 Intent locationListPage = new Intent(MapsActivity.this, ListOfFavLocations.class);
-                MapsActivity.this.startActivity(locationListPage);
+                //locationListPage.
+                startActivity(locationListPage);
             }
         });
         mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
             @Override
             public void onMapClick(LatLng point) {
 
-                favName = (EditText) setLocation.findViewById(R.id.nameOfLocation);
                 //  show the alert box
                 addFavor.setPosition(point);
-                View setLocat = LayoutInflater.from(MapsActivity.this).inflate(R.layout.set_location,null);
+                setLocat = LayoutInflater.from(MapsActivity.this).inflate(R.layout.set_location,null);
                 AlertDialog.Builder builder = new AlertDialog.Builder(MapsActivity.this);
                 builder.setMessage("What is the favorite location name?");
+
+                final EditText favName =(EditText) setLocat.findViewById(R.id.nameOfLocation);
+
                 builder.setView(setLocat).setPositiveButton("add",new DialogInterface.OnClickListener(){
 
                    public void onClick(DialogInterface dialog, int which){
-
                        // set it to Data - base
-                       String locationName = favName.getText().toString();
-                       if (TextUtils.isEmpty(locationName)) {
-                           arrayList.add(locationName);
-                           arrayAdapter.notifyDataSetChanged();
-                           Toast.makeText(getApplicationContext(),"added favorite location",Toast.LENGTH_SHORT).show();
+                       locationName = favName.getText().toString();
+
+                       if( !locationName.isEmpty() ) {
+                           //ListOfFavLocations.addItem(locationName);
+                            //list.addItem2(locationName);
+                           //list.add();
+                           ListOfFavLocations.addItem2();
+                           Toast.makeText(getApplicationContext(), "added favorite location", Toast.LENGTH_SHORT).show();
                        }
 
                    }                    // close the prompt after click cancel

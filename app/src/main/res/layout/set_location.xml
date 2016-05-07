@@ -11,7 +11,9 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id= "@+id/nameOfLocation"
-        android:hint="Enter name of location" />
+        android:hint="Enter name of location"
+        android:enabled="true"
+        android:editable="true"/>
 
 
 </LinearLayout>
