@@ -10,14 +10,24 @@
         android:name="com.google.android.gms.maps.SupportMapFragment"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-     />
+        />
 
     <Button
         android:layout_height="wrap_content"
         android:layout_width="wrap_content"
         android:id="@+id/listButton"
         android:text="list"
+        android:textColor="#FFFFFF"
         android:clickable="true"
-        android:layout_gravity="left|top" />
+        android:layout_gravity="left|top"
+        android:background="#001C32" />
+
+    <ListView
+        android:layout_width="250dp"
+        android:layout_height="wrap_content"
+        android:background="#FFFFFF"
+
+        android:id= "@+id/lv"
+        android:visibility="gone" />
 
 </FrameLayout>
