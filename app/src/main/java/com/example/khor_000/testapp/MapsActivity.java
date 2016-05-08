@@ -1,6 +1,8 @@
 package com.example.khor_000.testapp;
 
 import com.example.khor_000.testapp.ListOfFavLocations;
+
+import android.Manifest;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -51,6 +53,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
+        //Get permission to send sms messages
+        ActivityCompat.requestPermissions(this,new String[]{Manifest.permission.SEND_SMS},1);
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
