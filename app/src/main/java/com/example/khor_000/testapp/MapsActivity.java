@@ -5,9 +5,11 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
+import android.drm.DrmStore;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
@@ -23,6 +25,9 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.appindexing.Action;
+import com.google.android.gms.appindexing.AppIndex;
+import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -44,17 +49,28 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private ArrayAdapter<LocationItem> arrayAdapter;
     private ArrayList<String> arrayList;
     private ListView listView;
+    private Marker addFavor;
     private List<LocationItem> myLocations = new ArrayList<LocationItem>();
-    private static double ONE_TENTH_MILE = 160.9;
-    private String pastLocation = "NULL";
+    private List<Marker> locMakers = new ArrayList<Marker>();
+    private String pastLocation = "";
+    private static final double ONE_TENTH_MILE = 160.9;
+    private static final int MY_PERMISSIONS_REQUEST_SEND_SMS = 100;
+    private static final int MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 101;
+    private static final int MY_PERMISSIONS_REQUEST_ACCESS_COARSE_LOCATION = 102;
+
+
+
+
+    /**
+     * ATTENTION: This was auto-generated to implement the App Indexing API.
+     * See https://g.co/AppIndexing/AndroidStudio for more information.
+     */
+    private GoogleApiClient client;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
-
-        //Get permission to send sms messages
-        ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.SEND_SMS}, 1);
 
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
@@ -67,7 +83,51 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         listView = (ListView) findViewById(R.id.lv);
         listView.setAdapter(arrayAdapter);
 
+        // ATTENTION: This was auto-generated to implement the App Indexing API.
+        // See https://g.co/AppIndexing/AndroidStudio for more information.
+        client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
+
     }
+    @Override
+    public void onStart() {
+        super.onStart();
+
+        // ATTENTION: This was auto-generated to implement the App Indexing API.
+        // See https://g.co/AppIndexing/AndroidStudio for more information.
+        client.connect();
+        Action viewAction = Action.newAction(
+                Action.TYPE_VIEW, // TODO: choose an action type.
+                "Maps Page", // TODO: Define a title for the content shown.
+                // TODO: If you have web page content that matches this app activity's content,
+                // make sure this auto-generated web page URL is correct.
+                // Otherwise, set the URL to null.
+                Uri.parse("http://host/path"),
+                // TODO: Make sure this auto-generated app URL is correct.
+                Uri.parse("android-app://com.example.khor_000.testapp/http/host/path")
+        );
+        AppIndex.AppIndexApi.start(client, viewAction);
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+
+        // ATTENTION: This was auto-generated to implement the App Indexing API.
+        // See https://g.co/AppIndexing/AndroidStudio for more information.
+        Action viewAction = Action.newAction(
+                Action.TYPE_VIEW, // TODO: choose an action type.
+                "Maps Page", // TODO: Define a title for the content shown.
+                // TODO: If you have web page content that matches this app activity's content,
+                // make sure this auto-generated web page URL is correct.
+                // Otherwise, set the URL to null.
+                Uri.parse("http://host/path"),
+                // TODO: Make sure this auto-generated app URL is correct.
+                Uri.parse("android-app://com.example.khor_000.testapp/http/host/path")
+        );
+        AppIndex.AppIndexApi.end(client, viewAction);
+        client.disconnect();
+    }
+
 
     private class MyLocAdapter extends ArrayAdapter<LocationItem> {
         public MyLocAdapter() {
@@ -95,16 +155,16 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             makeText.setText(currLoc.getName());
 
             //latitude
-            TextView laText = (TextView) itemView.findViewById(R.id.latTxt);
+            TextView latText = (TextView) itemView.findViewById(R.id.latTxt);
             Double latVal = currLoc.getLatitude();
-            latVal = Double.parseDouble(new DecimalFormat("##.##").format(latVal));
-            laText.setText("LAT: " + latVal + "\t");
+            latVal = Double.parseDouble(new DecimalFormat("##.###").format(latVal));
+            latText.setText("LAT: " + latVal + "\t");
 
             //longitude
             TextView lngText = (TextView) itemView.findViewById(R.id.lngTxt);
             Double lngVal = currLoc.getLatitude();
-            lngVal = Double.parseDouble(new DecimalFormat("##.##").format(lngVal));
-            laText.setText("LON: " + lngVal);
+            lngVal = Double.parseDouble(new DecimalFormat("##.###").format(lngVal));
+            lngText.setText("LON: " + lngVal);
 
             return itemView;
         }
@@ -124,10 +184,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
-        // Add a marker in Sydney and move the camera
+        // Add a marker in San Diego and move the camera
         LatLng sanDiego = new LatLng(32.7157, -117.1611);
-        final Marker addFavor = mMap.addMarker(new MarkerOptions().position(sanDiego).title("where am I  "));
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(sanDiego));
+        addFavor = mMap.addMarker(new MarkerOptions().position(sanDiego).title("Where am I"));
         mMap.getUiSettings().setMyLocationButtonEnabled(true);
         mMap.getUiSettings().setZoomControlsEnabled(true);
 
@@ -164,18 +223,26 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                             LocationItem tempLoc = new LocationItem(locationName, point.latitude,
                                     point.longitude);
                             arrayAdapter.add(tempLoc);
+                            //add a marker on the map
+                            addFavor = mMap.addMarker(new MarkerOptions().position(point).title(locationName));
+                            locMakers.add(addFavor);
                             Toast.makeText(getApplicationContext(), "Added To Favorite",
                                     Toast.LENGTH_SHORT).show();
                         } else {
                             Toast.makeText(getApplicationContext(), "No Input Detected",
                                     Toast.LENGTH_SHORT).show();
+                            addFavor.remove();
 
                         }
 
                     }
                     // close the prompt after click cancel
-                }).setNegativeButton("Cancel", null).setCancelable(true);
-                // cancelable even using back key
+                }).setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+
+                    public void onClick(DialogInterface dialog, int which) {
+                        Toast.makeText(getApplicationContext(), "Canceled", Toast.LENGTH_SHORT).show();
+                    }                    // close the prompt after click cancel
+                }).setCancelable(true);  // cancelable even using back key
 
                 AlertDialog alert = builder.create();
                 alert.show();
@@ -188,8 +255,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 //check if location is in the range of any of the favorite locations
                 for (LocationItem i : myLocations) {
                     if (getRange(location.getLatitude(), location.getLongitude(), i.getLatitude(),
-                            i.getLongitude()) < ONE_TENTH_MILE) {
-                        Toast.makeText(getApplicationContext(), "Visited!", Toast.LENGTH_SHORT).show();
+                            i.getLongitude()) < ONE_TENTH_MILE && pastLocation != i.getName()) {
+                        // only send msg if visit different fav location
+                        if ( pastLocation != i.getName()) {
+                            Toast.makeText(getApplicationContext(), "Visit: " + i.getName(),
+                                    Toast.LENGTH_SHORT).show();
+                            sendSMS();
+                            pastLocation = i.getName();
+                        }
                     }
                 }
             }
@@ -237,7 +310,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             //   public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults)
             // to handle the case where the user grants the permission. See the documentation
             // for ActivityCompat#requestPermissions for more details.
-            ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION}, 100);
+            ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION}, MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
 
             Log.d("test1", "ins");
             return;
@@ -261,6 +334,36 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         catch (Exception e) {
             Toast.makeText(getApplicationContext(), "SMS failed, please try again.", Toast.LENGTH_LONG).show();
             e.printStackTrace();
+        }
+    }
+    @Override
+    public void onRequestPermissionsResult(int requestCode,
+                                           String permissions[], int[] grantResults) {
+        switch (requestCode) {
+            case MY_PERMISSIONS_REQUEST_SEND_SMS: {
+                if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                } else {
+                    Toast.makeText(this, "Until you grant the permission, we cannot send notification " +
+                            "to your partner", Toast.LENGTH_SHORT).show();
+                }
+                return;
+            }
+            case MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION: {
+                if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                } else {
+                    Toast.makeText(this, "Until you grant the permission, we cannot get your " +
+                            "current location", Toast.LENGTH_SHORT).show();
+                }
+                return;
+            }
+            case MY_PERMISSIONS_REQUEST_ACCESS_COARSE_LOCATION: {
+                if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                } else {
+                    Toast.makeText(this, "Until you grant the permission, we cannot get your " +
+                            "current location", Toast.LENGTH_SHORT).show();
+                }
+                return;
+            }
         }
     }
 }

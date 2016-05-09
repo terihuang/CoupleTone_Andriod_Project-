@@ -12,16 +12,6 @@
         android:layout_height="wrap_content"
         />
 
-    <Button
-        android:layout_height="wrap_content"
-        android:layout_width="wrap_content"
-        android:id="@+id/listButton"
-        android:text="list"
-        android:textColor="#FFFFFF"
-        android:clickable="true"
-        android:layout_gravity="left|top"
-        android:background="#001C32" />
-
     <ListView
         android:layout_width="250dp"
         android:layout_height="wrap_content"
@@ -29,5 +19,15 @@
 
         android:id= "@+id/lv"
         android:visibility="gone" />
+
+    <Button
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        android:id="@+id/listButton"
+        android:text="list"
+        android:textColor="#FFFFFF"
+        android:clickable="true"
+        android:layout_gravity="left|bottom"
+        android:background="#001C32" />
 
 </FrameLayout>
