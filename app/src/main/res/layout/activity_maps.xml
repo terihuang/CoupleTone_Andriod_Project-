@@ -30,4 +30,11 @@
         android:layout_gravity="left|bottom"
         android:background="#001C32" />
 
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Add Partner"
+        android:id="@+id/partner"
+        android:layout_gravity="center_horizontal|bottom" />
+
 </FrameLayout>

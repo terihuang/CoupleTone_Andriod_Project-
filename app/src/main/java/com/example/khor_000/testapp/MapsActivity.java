@@ -18,6 +18,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
@@ -41,6 +42,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
+    private static final double ONE_TENTH_MILE = 160.9;
+    private static final int MY_PERMISSIONS_REQUEST_SEND_SMS = 100;
+    private static final int MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 101;
+    private static final int MY_PERMISSIONS_REQUEST_ACCESS_COARSE_LOCATION = 102;
 
     private GoogleMap mMap;
     private View setLocat;
@@ -53,13 +58,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private List<LocationItem> myLocations = new ArrayList<LocationItem>();
     private List<Marker> locMakers = new ArrayList<Marker>();
     private String pastLocation = "";
-    private static final double ONE_TENTH_MILE = 160.9;
-    private static final int MY_PERMISSIONS_REQUEST_SEND_SMS = 100;
-    private static final int MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 101;
-    private static final int MY_PERMISSIONS_REQUEST_ACCESS_COARSE_LOCATION = 102;
-
-
-
+    private Button partner;
+    private String phoneget;
+    private String smsMsg;
+    private String partnerName;
+    private View edit;
 
     /**
      * ATTENTION: This was auto-generated to implement the App Indexing API.
@@ -77,7 +80,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
+
         showList = (Button) findViewById(R.id.listButton);
+
+        partner=(Button) findViewById(R.id.partner);
 
         arrayAdapter = new MyLocAdapter();
         listView = (ListView) findViewById(R.id.lv);
@@ -86,7 +92,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         // ATTENTION: This was auto-generated to implement the App Indexing API.
         // See https://g.co/AppIndexing/AndroidStudio for more information.
         client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
-
+        // call method to monitor click event on a location
+        locationClickHandler();
     }
     @Override
     public void onStart() {
@@ -170,7 +177,47 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
     };
 
-    ;
+    private void locationClickHandler(){
+        ListView list = (ListView) findViewById(R.id.lv);
+        list.setOnItemClickListener(new AdapterView.OnItemClickListener(){
+            @Override
+            public void onItemClick(AdapterView<?> parent, View viewClicked,
+                                    int position, long id ) {
+
+                if (!myLocations.isEmpty()) {
+                    AlertDialog.Builder builder1 = new AlertDialog.Builder(MapsActivity.this);
+                    builder1.setMessage("Confirm Delete " + myLocations.get(position).getName() + " ?");
+
+                    final int index = position;
+
+                    builder1.setPositiveButton("YES", new DialogInterface.OnClickListener() {
+
+                        public void onClick(DialogInterface dialog, int which) {
+
+                            String deleName = myLocations.get(index).getName();
+
+                            myLocations.remove(index);
+
+                            locMakers.get(index).remove();
+
+                            locMakers.remove(index);
+
+                            arrayAdapter.notifyDataSetChanged();
+
+                            Toast.makeText(getApplicationContext(), "" + deleName + " Deleted", Toast.LENGTH_SHORT).show();
+
+                        }                    // close the prompt after click cancel
+                    }).setNegativeButton("No", null).setCancelable(true);  // cancelable even using back key
+
+                    AlertDialog alert = builder1.create();
+                    alert.show();
+
+                }
+            }
+
+        });
+
+    }
 
     /**
      * Manipulates the map once available.
@@ -189,6 +236,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         addFavor = mMap.addMarker(new MarkerOptions().position(sanDiego).title("Where am I"));
         mMap.getUiSettings().setMyLocationButtonEnabled(true);
         mMap.getUiSettings().setZoomControlsEnabled(true);
+        edit = LayoutInflater.from(MapsActivity.this).inflate(R.layout.partnerwindow, null);
 
         showList.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -196,6 +244,30 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
                 listView.setVisibility(View.VISIBLE);
                 showList.setVisibility(View.GONE);
+            }
+        });
+        partner.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                //LayoutInflater inflater= MapsActivity.this.getLayoutInflater();
+                final EditText name = (EditText) edit.findViewById(R.id.name);
+                final EditText number = (EditText) edit.findViewById(R.id.phone);
+                AlertDialog.Builder alertDialog = new AlertDialog.Builder(MapsActivity.this); //Read Update
+                alertDialog.setView(edit);
+                alertDialog.setTitle("Partner please");
+
+
+                alertDialog.setPositiveButton("Confirm", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+
+                        partnerName = name.getText().toString();
+                        phoneget = number.getText().toString();
+
+                    }
+                }).setNegativeButton("", null).setCancelable(true);
+
+                AlertDialog alert1 = alertDialog.create();
+                alert1.show();  //<-- See This!
             }
         });
 
@@ -219,28 +291,30 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                         locationName = favName.getText().toString();
 
                         if (!locationName.isEmpty()) {
+
                             //save location with given info
-                            LocationItem tempLoc = new LocationItem(locationName, point.latitude,
-                                    point.longitude);
+                            LocationItem tempLoc = new LocationItem(locationName, point.latitude, point.longitude);
+
                             arrayAdapter.add(tempLoc);
+
                             //add a marker on the map
                             addFavor = mMap.addMarker(new MarkerOptions().position(point).title(locationName));
                             locMakers.add(addFavor);
-                            Toast.makeText(getApplicationContext(), "Added To Favorite",
-                                    Toast.LENGTH_SHORT).show();
+
+                            Toast.makeText(getApplicationContext(), "Added To Favorite", Toast.LENGTH_SHORT).show();
                         } else {
-                            Toast.makeText(getApplicationContext(), "No Input Detected",
-                                    Toast.LENGTH_SHORT).show();
+                            Toast.makeText(getApplicationContext(), "No Input Detected", Toast.LENGTH_SHORT).show();
                             addFavor.remove();
 
                         }
 
-                    }
-                    // close the prompt after click cancel
+                    }                    // close the prompt after click cancel
                 }).setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
 
                     public void onClick(DialogInterface dialog, int which) {
                         Toast.makeText(getApplicationContext(), "Canceled", Toast.LENGTH_SHORT).show();
+                        //addFavor.remove();
+
                     }                    // close the prompt after click cancel
                 }).setCancelable(true);  // cancelable even using back key
 
@@ -248,6 +322,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 alert.show();
             }
         });
+
 
         LocationListener locationListener = new LocationListener() {
             @Override
@@ -260,8 +335,22 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                         if ( pastLocation != i.getName()) {
                             Toast.makeText(getApplicationContext(), "Visit: " + i.getName(),
                                     Toast.LENGTH_SHORT).show();
-                            sendSMS();
-                            pastLocation = i.getName();
+
+                            //checks for partner's name
+                            if(partnerName.equals("")){
+                                partnerName = "partner";
+                            }
+                            //checks for phone number
+                            if (!phoneget.isEmpty()) {
+
+                                smsMsg = partnerName + " visits "+ i.getName();
+
+                                sendSMS(smsMsg, phoneget);
+                                pastLocation = i.getName();
+
+                            }
+
+
                         }
                     }
                 }
@@ -323,9 +412,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         locationManager.requestLocationUpdates(locationProvider, 0, 0, locationListener);
 
     }
-    public void sendSMS(){
-        String message = "Your partner just visited a favorite location!";
-        String phoneNo = new String("5108624681");
+    public void sendSMS(String message, String phoneNo){
         try {
             SmsManager smsManager = SmsManager.getDefault();
             smsManager.sendTextMessage(phoneNo, null, message, null, null);
