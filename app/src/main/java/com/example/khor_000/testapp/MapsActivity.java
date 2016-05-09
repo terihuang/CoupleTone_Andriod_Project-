@@ -1,3 +1,8 @@
+// Team Number: 31
+// Project: CoupleTones MileStone
+// FileName: MapsActivity.java
+// Description: Main activity for this app, calls other classes and methods
+
 package com.example.khor_000.testapp;
 
 import android.Manifest;
@@ -42,11 +47,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
+
+    // constants
     private static final double ONE_TENTH_MILE = 160.9;
     private static final int MY_PERMISSIONS_REQUEST_SEND_SMS = 100;
     private static final int MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 101;
     private static final int MY_PERMISSIONS_REQUEST_ACCESS_COARSE_LOCATION = 102;
 
+    // variables
     private GoogleMap mMap;
     private View setLocat;
     private Button showList;
@@ -80,11 +88,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
-
+        //  set up buttons and view adapter
         showList = (Button) findViewById(R.id.listButton);
-
         partner=(Button) findViewById(R.id.partner);
-
         arrayAdapter = new MyLocAdapter();
         listView = (ListView) findViewById(R.id.lv);
         listView.setAdapter(arrayAdapter);
@@ -135,7 +141,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         client.disconnect();
     }
 
-
+    // method to set object to listview
     private class MyLocAdapter extends ArrayAdapter<LocationItem> {
         public MyLocAdapter() {
             super(MapsActivity.this, R.layout.single_location, myLocations);
@@ -177,6 +183,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
     };
 
+    // method to delete a location on favorite locations
     private void locationClickHandler(){
         ListView list = (ListView) findViewById(R.id.lv);
         list.setOnItemClickListener(new AdapterView.OnItemClickListener(){
@@ -237,7 +244,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mMap.getUiSettings().setMyLocationButtonEnabled(true);
         mMap.getUiSettings().setZoomControlsEnabled(true);
 
-
+        // show the location list when clicked
         showList.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -246,6 +253,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 showList.setVisibility(View.GONE);
             }
         });
+
+        // method to collect partner info
         partner.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -272,6 +281,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             }
         });
 
+        // handle on click event on map
         mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
             @Override
             public void onMapClick(final LatLng point) {
@@ -343,20 +353,16 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                             }
                             //checks for phone number
                             if (!phoneget.isEmpty()) {
-
                                 smsMsg = partnerName + " visits "+ i.getName();
-
                                 sendSMS(smsMsg, phoneget);
                                 pastLocation = i.getName();
-
                             }
-
-
                         }
                     }
                 }
             }
 
+            // calculate the distance between two points
             public double getRange(double lat1, double lon1, double lat2, double lon2) {
                 Double R = 6378.137; // Radius of earth in KM
                 Double dLat = (lat2 - lat1) * Math.PI / 180;
@@ -413,6 +419,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         locationManager.requestLocationUpdates(locationProvider, 0, 0, locationListener);
 
     }
+
+    // send SMS to partner
     public void sendSMS(String message, String phoneNo){
         try {
             SmsManager smsManager = SmsManager.getDefault();

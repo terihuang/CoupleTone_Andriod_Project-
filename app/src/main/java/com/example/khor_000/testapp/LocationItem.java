@@ -1,8 +1,12 @@
+// Team Number: 31
+// Project: CoupleTones MileStone
+// FileName: LocationItem.java
+// Description: class to create a Location Object, store name, latitude and logtitude
+//              of a favorite location
+
+
 package com.example.khor_000.testapp;
 
-/**
- * Created by Emily on 5/8/2016.
- */
 public class LocationItem {
     private  String locName;
     private double latitude;
