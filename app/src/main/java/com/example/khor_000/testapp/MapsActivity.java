@@ -236,7 +236,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         addFavor = mMap.addMarker(new MarkerOptions().position(sanDiego).title("Where am I"));
         mMap.getUiSettings().setMyLocationButtonEnabled(true);
         mMap.getUiSettings().setZoomControlsEnabled(true);
-        edit = LayoutInflater.from(MapsActivity.this).inflate(R.layout.partnerwindow, null);
+
 
         showList.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -249,6 +249,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         partner.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                edit = LayoutInflater.from(MapsActivity.this).inflate(R.layout.partnerwindow, null);
                 //LayoutInflater inflater= MapsActivity.this.getLayoutInflater();
                 final EditText name = (EditText) edit.findViewById(R.id.name);
                 final EditText number = (EditText) edit.findViewById(R.id.phone);
