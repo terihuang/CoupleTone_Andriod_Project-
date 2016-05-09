@@ -24,16 +24,18 @@
         android:layout_height="wrap_content"
         android:layout_width="wrap_content"
         android:id="@+id/listButton"
-        android:text="list"
+        android:text="LIST"
         android:textColor="#FFFFFF"
         android:clickable="true"
         android:layout_gravity="left|bottom"
-        android:background="#001C32" />
+        android:background="#FA1E9E" />
 
     <Button
-        android:layout_width="wrap_content"
+        android:layout_width="130dp"
         android:layout_height="wrap_content"
-        android:text="Add Partner"
+        android:background="#FA1E9E"
+        android:textColor="#FFFFFF"
+        android:text="Add PARTNER"
         android:id="@+id/partner"
         android:layout_gravity="center_horizontal|bottom" />
 

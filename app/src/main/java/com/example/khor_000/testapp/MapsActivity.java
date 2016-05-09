@@ -2,6 +2,8 @@
 // Project: CoupleTones MileStone
 // FileName: MapsActivity.java
 // Description: Main activity for this app, calls other classes and methods
+//              This app will send SMS to the user's partner when a user
+//              visits his/her saved favorite locations.
 
 package com.example.khor_000.testapp;
 
@@ -83,6 +85,16 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
 
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.SEND_SMS) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.SEND_SMS}, MY_PERMISSIONS_REQUEST_SEND_SMS);
+        }
+
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
@@ -94,6 +106,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         arrayAdapter = new MyLocAdapter();
         listView = (ListView) findViewById(R.id.lv);
         listView.setAdapter(arrayAdapter);
+        partnerName = "partner";
+        phoneget = "";
 
         // ATTENTION: This was auto-generated to implement the App Indexing API.
         // See https://g.co/AppIndexing/AndroidStudio for more information.
@@ -272,6 +286,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
                         partnerName = name.getText().toString();
                         phoneget = number.getText().toString();
+                        Log.v("V",phoneget);
 
                     }
                 }).setNegativeButton("", null).setCancelable(true);
@@ -309,8 +324,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                             arrayAdapter.add(tempLoc);
 
                             //add a marker on the map
-                            addFavor = mMap.addMarker(new MarkerOptions().position(point).title(locationName));
-                            locMakers.add(addFavor);
+                            addFavor = mMap.addMarker(new MarkerOptions().position(point).title("Where am I"));
+                            Marker temp = addFavor;
+                            locMakers.add(temp);
 
                             Toast.makeText(getApplicationContext(), "Added To Favorite", Toast.LENGTH_SHORT).show();
                         } else {
@@ -324,7 +340,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
                     public void onClick(DialogInterface dialog, int which) {
                         Toast.makeText(getApplicationContext(), "Canceled", Toast.LENGTH_SHORT).show();
-                        //addFavor.remove();
+                        addFavor.remove();
 
                     }                    // close the prompt after click cancel
                 }).setCancelable(true);  // cancelable even using back key
@@ -347,10 +363,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                             Toast.makeText(getApplicationContext(), "Visit: " + i.getName(),
                                     Toast.LENGTH_SHORT).show();
 
-                            //checks for partner's name
-                            if(partnerName.equals("")){
-                                partnerName = "partner";
-                            }
                             //checks for phone number
                             if (!phoneget.isEmpty()) {
                                 smsMsg = partnerName + " visits "+ i.getName();
@@ -358,6 +370,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                                 pastLocation = i.getName();
                             }
                         }
+
+                    }
+
+                    //reset past location when user leaves a farvorite location
+                    if( getRange(location.getLatitude(), location.getLongitude(), i.getLatitude(), i.getLongitude()) > ONE_TENTH_MILE) {
+                        pastLocation = "";
                     }
                 }
             }
