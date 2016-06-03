@@ -52,7 +52,9 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.text.DecimalFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
@@ -70,12 +72,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private ArrayAdapter<LocationItem> arrayAdapter;
     private ArrayList<String> arrayList;
     private ListView listView;
-    private Marker addFavor;
     private List<LocationItem> myLocations = new ArrayList<LocationItem>();
     private List<Marker> locMakers = new ArrayList<Marker>();
     private String pastLocation = "";
     private String partnerLastVisit = "";
     private Button partner;
+    private Button clrData;
     private int locNum;
     private static String userName;
     private static String partnerName;
@@ -103,12 +105,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         //  set up buttons and view adapter
         showList = (Button) findViewById(R.id.listButton);
-        partner=(Button) findViewById(R.id.partner);
+        partner= (Button) findViewById(R.id.partner);
+        clrData= (Button) findViewById(R.id.clean);
+
         arrayAdapter = new MyLocAdapter();
         listView = (ListView) findViewById(R.id.lv);
         listView.setAdapter(arrayAdapter);
-        //userName = "user";
-        //partnerName = "partner";
+
 
         // ATTENTION: This was auto-generated to implement the App Indexing API.
         // See https://g.co/AppIndexing/AndroidStudio for more information.
@@ -154,7 +157,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                         userName = name.getText().toString();
                         partnerName = number.getText().toString();
 
-
                         //initilized firebase reference
                         String userLink = "http://chao-110.firebaseio.com/" + userName;
                         String partnerLink = "http://chao-110.firebaseio.com/" + partnerName;
@@ -175,14 +177,21 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                                     if (!data.equals("left")) {
                                         Toast.makeText(getBaseContext(), "Partner visits: " + data, Toast.LENGTH_LONG).show();
 
+                                        // get current time in HH:mm format
+                                        Calendar c = Calendar.getInstance();
+                                        SimpleDateFormat df = new SimpleDateFormat("HH:mm a");
+                                        String formattedTime = df.format(c.getTime());
+
+                                        // add the name of location and visited time to history list
                                         SharedPreferences sp = getSharedPreferences("LocatHistData", MODE_PRIVATE);
                                         locNum = sp.getInt("locNum", 0);
                                         locNum++;
                                         SharedPreferences.Editor editor = sp.edit();
-                                        editor.putString("locName" + locNum, data );
+                                        editor.putString("locName" + locNum, data + "   " + formattedTime );
                                         editor.putInt("locNum", locNum);
                                         editor.apply();
 
+                                        //update user last visit location
                                         partnerLastVisit = data;
                                     }
 
@@ -329,11 +338,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
-        // Add a marker in San Diego and move the camera
-        LatLng sanDiego = new LatLng(32.7157, -117.1611);
-
-        //addFavor = mMap.addMarker(new MarkerOptions().position(sanDiego).title("Where am I"));
-
         mMap.getUiSettings().setMyLocationButtonEnabled(true);
         mMap.getUiSettings().setZoomControlsEnabled(true);
 
@@ -347,6 +351,17 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             }
         });
 
+        // clean data when user click button
+        clrData.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                SharedPreferences sp = getSharedPreferences("LocatHistData", MODE_PRIVATE);
+                SharedPreferences.Editor editor = sp.edit();
+                editor.clear();
+                editor.commit();
+            }
+        });
+
 
         // handle on click event on map
         mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
@@ -355,8 +370,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
                 listView.setVisibility(View.GONE);
                 showList.setVisibility(View.VISIBLE);
+
                 //  show the alert box
-                //addFavor.setPosition(point);
                 setLocat = LayoutInflater.from(MapsActivity.this).inflate(R.layout.set_location, null);
                 AlertDialog.Builder builder = new AlertDialog.Builder(MapsActivity.this);
                 builder.setMessage("Assign A Name To This Location");
@@ -376,9 +391,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                             arrayAdapter.add(tempLoc);
 
                             //add a marker on the map
-                            //addFavor = mMap.addMarker(new MarkerOptions().position(point).title("Where am I"));
                             Marker temp = mMap.addMarker(new MarkerOptions().position(point).title(locationName));
-                            //Marker temp = addFavor;
                             locMakers.add(temp);
 
                             Toast.makeText(getApplicationContext(), "Added To Favorite", Toast.LENGTH_SHORT).show();
@@ -393,7 +406,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
                     public void onClick(DialogInterface dialog, int which) {
                         Toast.makeText(getApplicationContext(), "Canceled", Toast.LENGTH_SHORT).show();
-                        //addFavor.remove();
 
                     }                    // close the prompt after click cancel
                 }).setCancelable(true);  // cancelable even using back key
@@ -462,19 +474,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             }
 
             @Override
-            public void onStatusChanged(String provider, int status, Bundle extras) {
-
-            }
+            public void onStatusChanged(String provider, int status, Bundle extras) {}
 
             @Override
-            public void onProviderEnabled(String provider) {
-
-            }
+            public void onProviderEnabled(String provider) {}
 
             @Override
-            public void onProviderDisabled(String provider) {
-
-            }
+            public void onProviderDisabled(String provider) {}
         };
 
         LocationManager locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
