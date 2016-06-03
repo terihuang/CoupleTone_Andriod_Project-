@@ -78,6 +78,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private String partnerLastVisit = "";
     private Button partner;
     private Button clrData;
+    private Button histList;
     private int locNum;
     private static String userName;
     private static String partnerName;
@@ -105,8 +106,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         //  set up buttons and view adapter
         showList = (Button) findViewById(R.id.listButton);
-        partner= (Button) findViewById(R.id.partner);
-        clrData= (Button) findViewById(R.id.clean);
+        partner = (Button) findViewById(R.id.partner);
+        clrData = (Button) findViewById(R.id.clean);
+        histList = (Button) findViewById(R.id.hlbut);
 
         arrayAdapter = new MyLocAdapter();
         listView = (ListView) findViewById(R.id.lv);
@@ -179,7 +181,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
                                         // get current time in HH:mm format
                                         Calendar c = Calendar.getInstance();
-                                        SimpleDateFormat df = new SimpleDateFormat("HH:mm a");
+                                        SimpleDateFormat df = new SimpleDateFormat("hh:mm aaa");
                                         String formattedTime = df.format(c.getTime());
 
                                         // add the name of location and visited time to history list
@@ -346,6 +348,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             @Override
             public void onClick(View v) {
 
+                histList.setVisibility(View.GONE);
                 listView.setVisibility(View.VISIBLE);
                 showList.setVisibility(View.GONE);
             }
@@ -368,6 +371,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             @Override
             public void onMapClick(final LatLng point) {
 
+                histList.setVisibility(View.VISIBLE);
                 listView.setVisibility(View.GONE);
                 showList.setVisibility(View.VISIBLE);
 
