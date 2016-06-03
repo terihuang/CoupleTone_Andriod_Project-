@@ -39,4 +39,14 @@
         android:id="@+id/partner"
         android:layout_gravity="center_horizontal|bottom" />
 
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="#FA1E9E"
+        android:textColor="#FFFFFF"
+        android:text="Partner Visited"
+        android:id="@+id/hlbut"
+        android:layout_gravity="left|top"
+        android:onClick="goHistList" />
+
 </FrameLayout>

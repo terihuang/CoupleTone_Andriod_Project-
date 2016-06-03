@@ -2,7 +2,7 @@
 // Project: CoupleTones MileStone
 // FileName: MapsActivity.java
 // Description: Main activity for this app, calls other classes and methods
-//              This app will send SMS to the user's partner when a user
+//              This app will send message to the user's partner when a user
 //              visits his/her saved favorite locations.
 
 package com.example.khor_000.testapp;
@@ -11,6 +11,8 @@ import android.Manifest;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.drm.DrmStore;
 import android.location.Location;
@@ -20,7 +22,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
-import android.telephony.SmsManager;
+
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -33,9 +35,14 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.firebase.client.DataSnapshot;
+import com.firebase.client.Firebase;
+import com.firebase.client.FirebaseError;
+import com.firebase.client.ValueEventListener;
 import com.google.android.gms.appindexing.Action;
 import com.google.android.gms.appindexing.AppIndex;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.drive.query.Query;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -52,7 +59,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     // constants
     private static final double ONE_TENTH_MILE = 160.9;
-    private static final int MY_PERMISSIONS_REQUEST_SEND_SMS = 100;
     private static final int MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 101;
     private static final int MY_PERMISSIONS_REQUEST_ACCESS_COARSE_LOCATION = 102;
 
@@ -68,11 +74,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private List<LocationItem> myLocations = new ArrayList<LocationItem>();
     private List<Marker> locMakers = new ArrayList<Marker>();
     private String pastLocation = "";
+    private String partnerLastVisit = "";
     private Button partner;
-    private String phoneget;
-    private String smsMsg;
-    private String partnerName;
+    private int locNum;
+    private static String userName;
+    private static String partnerName;
     private View edit;
+
+    private Firebase myFirebase;
+    private Firebase partnerFirebase;
 
     /**
      * ATTENTION: This was auto-generated to implement the App Indexing API.
@@ -84,16 +94,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
-
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.SEND_SMS) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.SEND_SMS}, MY_PERMISSIONS_REQUEST_SEND_SMS);
-        }
+        Firebase.setAndroidContext(this);
 
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
@@ -106,8 +107,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         arrayAdapter = new MyLocAdapter();
         listView = (ListView) findViewById(R.id.lv);
         listView.setAdapter(arrayAdapter);
-        partnerName = "partner";
-        phoneget = "";
+        //userName = "user";
+        //partnerName = "partner";
 
         // ATTENTION: This was auto-generated to implement the App Indexing API.
         // See https://g.co/AppIndexing/AndroidStudio for more information.
@@ -133,6 +134,82 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 Uri.parse("android-app://com.example.khor_000.testapp/http/host/path")
         );
         AppIndex.AppIndexApi.start(client, viewAction);
+
+        // method to collect partner info
+        partner.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                edit = LayoutInflater.from(MapsActivity.this).inflate(R.layout.partnerwindow, null);
+                //LayoutInflater inflater= MapsActivity.this.getLayoutInflater();
+                final EditText name = (EditText) edit.findViewById(R.id.name);
+                final EditText number = (EditText) edit.findViewById(R.id.phone);
+                AlertDialog.Builder alertDialog = new AlertDialog.Builder(MapsActivity.this); //Read Update
+                alertDialog.setView(edit);
+                alertDialog.setTitle("Enter user and partner's name");
+
+
+                alertDialog.setPositiveButton("Confirm", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+
+                        userName = name.getText().toString();
+                        partnerName = number.getText().toString();
+
+
+                        //initilized firebase reference
+                        String userLink = "http://chao-110.firebaseio.com/" + userName;
+                        String partnerLink = "http://chao-110.firebaseio.com/" + partnerName;
+
+                        myFirebase = new Firebase( userLink );
+                        partnerFirebase = new Firebase( partnerLink );
+
+                        Toast.makeText(getBaseContext(), userLink , Toast.LENGTH_LONG).show();
+
+                        partnerFirebase.addValueEventListener(new ValueEventListener() {
+
+                            @Override
+                            public void onDataChange(DataSnapshot dataSnapshot) {
+                                String data = dataSnapshot.getValue(String.class);
+
+                                if ( data != null ) {
+
+                                    if (!data.equals("left")) {
+                                        Toast.makeText(getBaseContext(), "Partner visits: " + data, Toast.LENGTH_LONG).show();
+
+                                        SharedPreferences sp = getSharedPreferences("LocatHistData", MODE_PRIVATE);
+                                        locNum = sp.getInt("locNum", 0);
+                                        locNum++;
+                                        SharedPreferences.Editor editor = sp.edit();
+                                        editor.putString("locName" + locNum, data );
+                                        editor.putInt("locNum", locNum);
+                                        editor.apply();
+
+                                        partnerLastVisit = data;
+                                    }
+
+                                    else {
+                                        Toast.makeText(getBaseContext(), "Partner left: " + partnerLastVisit, Toast.LENGTH_LONG).show();
+                                        partnerLastVisit = "left";
+                                    }
+                                }
+                            }
+
+                            @Override
+                            public void onCancelled(FirebaseError firebaseError) {
+
+                            }
+
+                        });
+
+                        Log.v("V",partnerName);
+                    }
+                }).setNegativeButton("", null).setCancelable(true);
+
+                AlertDialog alert1 = alertDialog.create();
+                alert1.show();  //<-- See This!
+
+            }
+
+        });
     }
 
     @Override
@@ -254,7 +331,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mMap = googleMap;
         // Add a marker in San Diego and move the camera
         LatLng sanDiego = new LatLng(32.7157, -117.1611);
-        addFavor = mMap.addMarker(new MarkerOptions().position(sanDiego).title("Where am I"));
+
+        //addFavor = mMap.addMarker(new MarkerOptions().position(sanDiego).title("Where am I"));
+
         mMap.getUiSettings().setMyLocationButtonEnabled(true);
         mMap.getUiSettings().setZoomControlsEnabled(true);
 
@@ -268,33 +347,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             }
         });
 
-        // method to collect partner info
-        partner.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                edit = LayoutInflater.from(MapsActivity.this).inflate(R.layout.partnerwindow, null);
-                //LayoutInflater inflater= MapsActivity.this.getLayoutInflater();
-                final EditText name = (EditText) edit.findViewById(R.id.name);
-                final EditText number = (EditText) edit.findViewById(R.id.phone);
-                AlertDialog.Builder alertDialog = new AlertDialog.Builder(MapsActivity.this); //Read Update
-                alertDialog.setView(edit);
-                alertDialog.setTitle("Partner please");
-
-
-                alertDialog.setPositiveButton("Confirm", new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int which) {
-
-                        partnerName = name.getText().toString();
-                        phoneget = number.getText().toString();
-                        Log.v("V",phoneget);
-
-                    }
-                }).setNegativeButton("", null).setCancelable(true);
-
-                AlertDialog alert1 = alertDialog.create();
-                alert1.show();  //<-- See This!
-            }
-        });
 
         // handle on click event on map
         mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
@@ -304,7 +356,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 listView.setVisibility(View.GONE);
                 showList.setVisibility(View.VISIBLE);
                 //  show the alert box
-                addFavor.setPosition(point);
+                //addFavor.setPosition(point);
                 setLocat = LayoutInflater.from(MapsActivity.this).inflate(R.layout.set_location, null);
                 AlertDialog.Builder builder = new AlertDialog.Builder(MapsActivity.this);
                 builder.setMessage("Assign A Name To This Location");
@@ -324,14 +376,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                             arrayAdapter.add(tempLoc);
 
                             //add a marker on the map
-                            addFavor = mMap.addMarker(new MarkerOptions().position(point).title("Where am I"));
-                            Marker temp = addFavor;
+                            //addFavor = mMap.addMarker(new MarkerOptions().position(point).title("Where am I"));
+                            Marker temp = mMap.addMarker(new MarkerOptions().position(point).title(locationName));
+                            //Marker temp = addFavor;
                             locMakers.add(temp);
 
                             Toast.makeText(getApplicationContext(), "Added To Favorite", Toast.LENGTH_SHORT).show();
                         } else {
                             Toast.makeText(getApplicationContext(), "No Input Detected", Toast.LENGTH_SHORT).show();
-                            addFavor.remove();
+                            //temp.remove();
 
                         }
 
@@ -340,7 +393,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
                     public void onClick(DialogInterface dialog, int which) {
                         Toast.makeText(getApplicationContext(), "Canceled", Toast.LENGTH_SHORT).show();
-                        addFavor.remove();
+                        //addFavor.remove();
 
                     }                    // close the prompt after click cancel
                 }).setCancelable(true);  // cancelable even using back key
@@ -354,30 +407,42 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         LocationListener locationListener = new LocationListener() {
             @Override
             public void onLocationChanged(Location location) {
+
                 //check if location is in the range of any of the favorite locations
                 for (LocationItem i : myLocations) {
                     if (getRange(location.getLatitude(), location.getLongitude(), i.getLatitude(),
                             i.getLongitude()) < ONE_TENTH_MILE && pastLocation != i.getName()) {
                         // only send msg if visit different fav location
                         if ( pastLocation != i.getName()) {
-                            Toast.makeText(getApplicationContext(), "Visit: " + i.getName(),
+                            Toast.makeText(getApplicationContext(), "You Visit: " + i.getName(),
                                     Toast.LENGTH_SHORT).show();
 
-                            //checks for phone number
-                            if (!phoneget.isEmpty()) {
-                                smsMsg = partnerName + " visits "+ i.getName();
-                                sendSMS(smsMsg, phoneget);
-                                pastLocation = i.getName();
+                            //checks for phone number                                pastLocation = i.getName();
+
+                            if ( !userName.isEmpty() && !partnerName.isEmpty() ) {
+
+                                //send msg to partner if info not empty
+                                myFirebase.setValue(i.getName());
                             }
+
+                            pastLocation = i.getName();
                         }
 
                     }
 
                     //reset past location when user leaves a farvorite location
                     if( getRange(location.getLatitude(), location.getLongitude(), i.getLatitude(), i.getLongitude()) > ONE_TENTH_MILE) {
-                        pastLocation = "";
+
+                        if( !pastLocation.isEmpty() ) {
+                            Toast.makeText(getApplicationContext(), "You Left: " + pastLocation,
+                                    Toast.LENGTH_SHORT).show();
+                            pastLocation = "";
+                            myFirebase.setValue("left");
+                        }
+
                     }
                 }
+
             }
 
             // calculate the distance between two points
@@ -438,30 +503,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     }
 
-    // send SMS to partner
-    public void sendSMS(String message, String phoneNo){
-        try {
-            SmsManager smsManager = SmsManager.getDefault();
-            smsManager.sendTextMessage(phoneNo, null, message, null, null);
-            Toast.makeText(getApplicationContext(), "SMS sent.", Toast.LENGTH_LONG).show();
-        }
-        catch (Exception e) {
-            Toast.makeText(getApplicationContext(), "SMS failed, please try again.", Toast.LENGTH_LONG).show();
-            e.printStackTrace();
-        }
-    }
+
     @Override
     public void onRequestPermissionsResult(int requestCode,
                                            String permissions[], int[] grantResults) {
         switch (requestCode) {
-            case MY_PERMISSIONS_REQUEST_SEND_SMS: {
-                if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                } else {
-                    Toast.makeText(this, "Until you grant the permission, we cannot send notification " +
-                            "to your partner", Toast.LENGTH_SHORT).show();
-                }
-                return;
-            }
+
             case MY_PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION: {
                 if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 } else {
@@ -480,6 +527,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             }
         }
     }
+
+    public void goHistList(View view){
+
+        Intent i = new Intent(this, DailyLocList.class);
+
+        this.startActivity(i);
+    }
+
+
 }
 
 
