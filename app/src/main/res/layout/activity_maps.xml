@@ -56,4 +56,5 @@
         android:id="@+id/partner"
         android:layout_gravity="center_horizontal|bottom" />
 
+
 </FrameLayout>

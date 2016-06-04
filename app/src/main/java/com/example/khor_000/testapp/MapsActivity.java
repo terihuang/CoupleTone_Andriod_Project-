@@ -14,12 +14,14 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.drm.DrmStore;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.media.Ringtone;
+import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Vibrator;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 
@@ -51,11 +53,15 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
+import java.sql.Time;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
+import java.util.Map;
+import java.util.TimerTask;
+import java.util.Timer;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
@@ -86,6 +92,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     private Firebase myFirebase;
     private Firebase partnerFirebase;
+
+    private long[][]vibraPatterns = { {0,200,500}, {0,500,200}, {0, 1000, 500},
+                                      {0,200,1000}, {0, 500, 1000} } ;
+
+    private Map< String, int[]> visitLocs;
 
     /**
      * ATTENTION: This was auto-generated to implement the App Indexing API.
@@ -178,6 +189,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
                                     if (!data.equals("left")) {
                                         Toast.makeText(getBaseContext(), "Partner visits: " + data, Toast.LENGTH_LONG).show();
+
+                                        playTone(2);
+
+                                        playVibrate( vibraPatterns[0] , 1);
 
                                         // get current time in HH:mm format
                                         Calendar c = Calendar.getInstance();
@@ -545,6 +560,33 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         this.startActivity(i);
     }
 
+    // method to play sound notification
+    public void playTone( int index ) {
+        Uri notification = RingtoneManager.getDefaultUri(index);
+        final Ringtone r = RingtoneManager.getRingtone(getApplicationContext(), notification);
+        r.play();
+
+        TimerTask task = new TimerTask() {
+            @Override
+            public void run() {
+                r.stop();
+            }
+        };
+
+        long ringDelay = 3000;
+        Timer timer = new Timer();
+        timer.schedule(task, ringDelay);
+    }
+
+    // method to play vibration
+    public void playVibrate( long[] pattern, int repeat ){
+        Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+
+        for(int i = 0; i < repeat; i++ ) {
+            v.vibrate(pattern, -1);
+        }
+
+    }
 
 }
 
