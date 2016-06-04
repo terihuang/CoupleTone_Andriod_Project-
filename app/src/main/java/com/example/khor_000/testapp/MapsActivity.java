@@ -194,9 +194,16 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                                     if (!data.equals("left")) {
                                         Toast.makeText(getBaseContext(), "Partner visits: " + data, Toast.LENGTH_LONG).show();
 
+
                                         playTone(2);
                                         playVibrate( vibraPatterns[0] , 1);
+/*
+                                        SharedPreferences sp3 = getSharedPreferences("tone",MODE_PRIVATE);
+                                        playTone( sp3.getInt(data,0) );
 
+                                        SharedPreferences sp2 = getSharedPreferences("vib",MODE_PRIVATE);
+                                        playVibrate( vibraPatterns[sp2.getInt(data,0)], 1);
+*/
                                         //notify partner
                                         NotificationManager notificationManager =
                                                 (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
@@ -218,7 +225,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                                         locNum = sp.getInt("locNum", 0);
                                         locNum++;
                                         SharedPreferences.Editor editor = sp.edit();
-                                        editor.putString("locName" + locNum, data + "   " + formattedTime );
+                                        editor.putString("locName" + locNum, data + "\t" + formattedTime );
                                         editor.putInt("locNum", locNum);
                                         editor.apply();
 

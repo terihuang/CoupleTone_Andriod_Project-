@@ -19,5 +19,6 @@ public class CoupleTonesNotification extends AppCompatActivity{
                 .setContentText("Your partner just visited " + locName)
                 .build();
         manager.notify(0,notification);
+
     }
 }

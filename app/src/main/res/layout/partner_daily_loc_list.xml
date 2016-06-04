@@ -7,8 +7,23 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Partner Location History"
+        android:id="@id/info"
         android:textSize="30dp">
     </TextView>
+
+    <ListView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/vibList"
+        android:layout_gravity="center_horizontal"
+        android:visibility="gone" />
+
+    <ListView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/toneList"
+        android:layout_gravity="center_horizontal"
+        android:visibility="gone" />
 
     <ListView
         android:layout_width="match_parent"

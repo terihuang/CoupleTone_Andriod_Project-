@@ -6,6 +6,8 @@ android {
 
     defaultConfig {
         applicationId "com.example.khor_000.testapp"
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+
         minSdkVersion 17
         targetSdkVersion 23
         versionCode 1
@@ -30,9 +32,14 @@ android {
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     testCompile 'junit:junit:4.12'
-    compile 'com.android.support:appcompat-v7:23.2.1'
-    compile 'com.android.support:design:23.2.1'
+    compile 'com.android.support:appcompat-v7:23.1.1'
+    compile 'com.android.support:design:23.1.1'
     compile 'com.google.android.gms:play-services:8.4.0'
     compile 'com.firebase:firebase-client-android:2.5.0+'
     compile 'com.android.support:multidex:1.0.0'
+    androidTestCompile 'com.android.support.test.espresso:espresso-core:2.2+'
+    androidTestCompile 'com.android.support.test:runner:0.4.1'
+    androidTestCompile 'com.android.support.test:rules:0.4.1'
+    androidTestCompile 'org.hamcrest:hamcrest-library:1.3'
+
 }
