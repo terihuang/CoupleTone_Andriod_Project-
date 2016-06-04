@@ -9,6 +9,7 @@ package com.example.khor_000.testapp;
 
 import android.Manifest;
 import android.app.AlertDialog;
+import android.app.NotificationManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -58,6 +59,9 @@ import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TimerTask;
@@ -96,7 +100,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private long[][]vibraPatterns = { {0,200,500}, {0,500,200}, {0, 1000, 500},
                                       {0,200,1000}, {0, 500, 1000} } ;
 
-    private Map< String, int[]> visitLocs;
+    private Map< String, int[]> visitLocs = new HashMap< String, int[]>();
 
     /**
      * ATTENTION: This was auto-generated to implement the App Indexing API.
@@ -191,8 +195,18 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                                         Toast.makeText(getBaseContext(), "Partner visits: " + data, Toast.LENGTH_LONG).show();
 
                                         playTone(2);
-
                                         playVibrate( vibraPatterns[0] , 1);
+
+                                        //notify partner
+                                        NotificationManager notificationManager =
+                                                (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+                                        CoupleTonesNotification ctn = new CoupleTonesNotification(getApplicationContext());
+                                        ctn.sendNotification(notificationManager, data);
+
+                                        //save location to map when partner visits
+                                        int []virAndToneIndex = {0, 1};
+                                        visitLocs.put( data, virAndToneIndex );
+
 
                                         // get current time in HH:mm format
                                         Calendar c = Calendar.getInstance();
@@ -214,6 +228,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
                                     else {
                                         Toast.makeText(getBaseContext(), "Partner left: " + partnerLastVisit, Toast.LENGTH_LONG).show();
+                                        playTone(3);
+                                        playVibrate( vibraPatterns[0] , 2);
+
                                         partnerLastVisit = "left";
                                     }
                                 }
@@ -448,7 +465,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                             Toast.makeText(getApplicationContext(), "You Visit: " + i.getName(),
                                     Toast.LENGTH_SHORT).show();
 
-                            //checks for phone number                                pastLocation = i.getName();
+                            //checks for phone number             pastLocation = i.getName();
 
                             if ( !userName.isEmpty() && !partnerName.isEmpty() ) {
 
